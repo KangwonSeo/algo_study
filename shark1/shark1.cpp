@@ -25,7 +25,7 @@ pii find_seq(int seq, pii arr[][N_TABLE]) {
 		}
 	}
 	return mp(-1, -1);
-}
+} // return x,y
 pii change_dir(int dir) {
 	switch (dir) {
 		case 1: return mp(0, -1);
@@ -37,11 +37,12 @@ pii change_dir(int dir) {
 		case 7: return mp(1, 0);
 		case 8: return mp(1, -1);
 	}
-}
+} // return x,y
 
-int func(pii arr[][N_TABLE]) {
+int func(pii arr[][N_TABLE], pii pos) { //pos x,y
+	int ret = 0;
 	pii arr_b[N_TABLE][N_TABLE];
-	memcpy(&arr_b, arr, sizeof(pair<int, int>)* N_TABLE* N_TABLE );
+	memcpy(arr_b, arr, sizeof(pair<int, int>)* N_TABLE* N_TABLE );
 	for (int i = 0; i < (N_TABLE * N_TABLE); i++) {
 		pii seq = find_seq(i + 1, arr_b);
 		if(seq.first != -1 && seq.second != -1){
@@ -52,6 +53,20 @@ int func(pii arr[][N_TABLE]) {
 				swap(arr_b[seq.second][seq.first], arr_b[seq.second+shift.second][seq.first+shift.first]);
 		}
 	}
+	//shark working
+	pii shift = change_dir(arr_b[pos.second][pos.first].second);
+	for (int i = 1; i < N_TABLE - 1; i++) {
+		int next_y = pos.second + i * shift.second;
+		int next_x = pos.first + i * shift.first;
+		if (arr_b[next_y][next_x].first == 0) continue; //skip
+		if (next_y < 0 || next_y > 3 || next_x < 0 || next_x > 3) break; //overflow
+		pii tmp[N_TABLE][N_TABLE];
+		memcpy(tmp, arr_b, sizeof(pair<int, int>) * N_TABLE * N_TABLE);
+		tmp[pos.second][pos.first].first = tmp[pos.second][pos.first].second = 0; //delete first
+		tmp[next_y][next_x].first = SHARK;
+		ret = max(ret, func(tmp, mp(next_y, next_x)));
+	}
+	return ret;
 
 	//iterate
 	//deal with fish
@@ -69,6 +84,6 @@ int main(void) {
 	}
 	initial = arr[0][0].first;
 	arr[0][0].first = SHARK;
-	cout << func(arr) << endl;
+	cout << func(arr, mp(0,0)) << endl;
 	return 0;
 }
