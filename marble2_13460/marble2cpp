@@ -1,0 +1,125 @@
+#include <iostream>
+#include <stdio.h>
+#include <string>
+#include <string.h>
+#include <cstring>
+#include <map>
+#include <vector>
+#include <queue>
+#include <list>
+#include <algorithm>
+#include <utility>
+#include <numeric>
+#include <math.h>
+#define pii pair<int, int>
+
+using namespace std;
+int N,M;
+char A[10][10];
+
+struct INFO {
+	int rx, ry, bx, by, count;
+};
+
+INFO start;
+
+bool visited[10][10][10][10] = {false, };
+void setVisit(INFO &pos)
+{
+	visited[pos.ry][pos.rx][pos.by][pos.bx] = true;
+}
+
+bool checkVisit(INFO &pos) 
+{
+	return visited[pos.ry][pos.rx][pos.by][pos.bx];
+}
+
+bool checkLine(INFO &pos)
+{
+	return (pos.rx == pos.bx) && (pos.ry == pos.by);
+}
+
+int bfs()
+{
+	int dy[4] = {-1,1,0,0};
+	int dx[4] = {0,0,-1,1};
+	int ret = -1;
+	
+	queue<INFO> q;
+	q.push(start);
+	setVisit(start);
+	while(!q.empty()) {
+		INFO cur = q.front();
+		q.pop();
+		
+		if(A[cur.ry][cur.rx] == 'O') {
+			ret = cur.count;
+			break;
+		}
+		
+		for(int i=0; i<4; i++) {
+			INFO newPos = cur;
+			while(1) {
+				newPos.ry = newPos.ry + dy[i];
+				newPos.rx = newPos.rx + dx[i];
+				if(A[newPos.ry][newPos.rx] == '#') {
+					newPos.ry = newPos.ry - dy[i];
+					newPos.rx = newPos.rx - dx[i];
+					break;
+				}
+				if(A[newPos.ry][newPos.rx] == 'O') break;
+			}
+			while(1) {
+				newPos.by = newPos.by + dy[i];
+				newPos.bx = newPos.bx + dx[i];
+				if(A[newPos.by][newPos.bx] == '#') {
+					newPos.by = newPos.by - dy[i];
+					newPos.bx = newPos.bx - dx[i];
+					break;
+				}
+				if(A[newPos.by][newPos.bx] == 'O') break;
+			}
+			
+			if(A[newPos.by][newPos.bx] == 'O') continue;
+			
+			if(checkLine(newPos)) {
+				if( (abs(cur.ry - newPos.ry) + abs(cur.rx - newPos.rx)) <
+						(abs(cur.by - newPos.by) + abs(cur.bx - newPos.bx)) )
+				{
+					newPos.by = newPos.ry - dy[i];
+					newPos.bx = newPos.rx - dx[i];
+				} else {
+					newPos.ry = newPos.by - dy[i];
+					newPos.rx = newPos.bx - dx[i];
+				}
+			}
+			
+			if( checkVisit(newPos) == false && 
+					++newPos.count<=10 ) {
+				setVisit(newPos);
+				q.push(newPos);
+			}
+		}	
+	}
+	
+	return ret;	
+}
+int main()
+{
+	cin >> N >> M;
+	for(int i=0; i<N; i++) {
+		for(int j=0; j<M; j++) {
+			cin >> A[i][j];
+			if(A[i][j] == 'R') {
+				start.ry = i;
+				start.rx = j;
+			}
+			if(A[i][j] == 'B') {
+				start.by = i;
+				start.bx = j;
+			}
+		}
+	}
+	start.count = 0;
+	cout << bfs() << endl;
+}
